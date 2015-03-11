@@ -125,6 +125,8 @@ elif sys.platform.startswith("sunos"):
     from . import _pssunos as _psplatform
     from ._pssunos import (CONN_IDLE,  # NOQA
                            CONN_BOUND)
+elif sys.platform.startswith("aix"):
+    from . import _psaix as _psplatform
 
 else:  # pragma: no cover
     raise NotImplementedError('platform %s is not supported' % sys.platform)
@@ -163,6 +165,7 @@ AF_LINK = _psplatform.AF_LINK
 _TOTAL_PHYMEM = None
 _POSIX = os.name == 'posix'
 _WINDOWS = os.name == 'nt'
+_AIX = sys.platform.startswith("aix")
 _timer = getattr(time, 'monotonic', time.time)
 
 
@@ -659,7 +662,7 @@ class Process(object):
             """
             return self._proc.num_fds()
 
-    # Linux, BSD and Windows only
+    # Linux, BSD, AIX and Windows only
     if hasattr(_psplatform.Process, "io_counters"):
 
         def io_counters(self):
@@ -736,11 +739,12 @@ class Process(object):
             """
             return self._proc.num_handles()
 
-    def num_ctx_switches(self):
-        """Return the number of voluntary and involuntary context
-        switches performed by this process.
-        """
-        return self._proc.num_ctx_switches()
+    if not _AIX:
+        def num_ctx_switches(self):
+            """Return the number of voluntary and involuntary context
+            switches performed by this process.
+            """
+            return self._proc.num_ctx_switches()
 
     def num_threads(self):
         """Return the number of threads used by this process."""
@@ -957,32 +961,33 @@ class Process(object):
         except ZeroDivisionError:
             return 0.0
 
-    def memory_maps(self, grouped=True):
-        """Return process' mapped memory regions as a list of namedtuples
-        whose fields are variable depending on the platform.
+    if not _AIX:
+        def memory_maps(self, grouped=True):
+            """Return process' mapped memory regions as a list of namedtuples
+            whose fields are variable depending on the platform.
 
-        If 'grouped' is True the mapped regions with the same 'path'
-        are grouped together and the different memory fields are summed.
+            If 'grouped' is True the mapped regions with the same 'path'
+            are grouped together and the different memory fields are summed.
 
-        If 'grouped' is False every mapped region is shown as a single
-        entity and the namedtuple will also include the mapped region's
-        address space ('addr') and permission set ('perms').
-        """
-        it = self._proc.memory_maps()
-        if grouped:
-            d = {}
-            for tupl in it:
-                path = tupl[2]
-                nums = tupl[3:]
-                try:
-                    d[path] = map(lambda x, y: x + y, d[path], nums)
-                except KeyError:
-                    d[path] = nums
-            nt = _psplatform.pmmap_grouped
-            return [nt(path, *d[path]) for path in d]  # NOQA
-        else:
-            nt = _psplatform.pmmap_ext
-            return [nt(*x) for x in it]
+            If 'grouped' is False every mapped region is shown as a single
+            entity and the namedtuple will also include the mapped region's
+            address space ('addr') and permission set ('perms').
+            """
+            it = self._proc.memory_maps()
+            if grouped:
+                d = {}
+                for tupl in it:
+                    path = tupl[2]
+                    nums = tupl[3:]
+                    try:
+                        d[path] = map(lambda x, y: x + y, d[path], nums)
+                    except KeyError:
+                        d[path] = nums
+                nt = _psplatform.pmmap_grouped
+                return [nt(path, *d[path]) for path in d]  # NOQA
+            else:
+                nt = _psplatform.pmmap_ext
+                return [nt(*x) for x in it]
 
     def open_files(self):
         """Return files opened by process as a list of
