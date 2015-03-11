@@ -129,6 +129,8 @@ elif sys.platform.startswith("sunos"):
     from . import _pssunos as _psplatform
     from ._pssunos import (CONN_IDLE,  # NOQA
                            CONN_BOUND)
+elif sys.platform.startswith("aix"):
+    from . import _psaix as _psplatform
 
 else:  # pragma: no cover
     raise NotImplementedError('platform %s is not supported' % sys.platform)
@@ -168,6 +170,7 @@ _TOTAL_PHYMEM = None
 _POSIX = os.name == 'posix'
 _WINDOWS = os.name == 'nt'
 _OPENBSD = sys.platform.startswith("openbsd")
+_AIX = sys.platform.startswith("aix")
 _timer = getattr(time, 'monotonic', time.time)
 
 
@@ -664,7 +667,7 @@ class Process(object):
             """
             return self._proc.num_fds()
 
-    # Linux, BSD and Windows only
+    # Linux, BSD, AIX and Windows only
     if hasattr(_psplatform.Process, "io_counters"):
 
         def io_counters(self):
@@ -741,11 +744,12 @@ class Process(object):
             """
             return self._proc.num_handles()
 
-    def num_ctx_switches(self):
-        """Return the number of voluntary and involuntary context
-        switches performed by this process.
-        """
-        return self._proc.num_ctx_switches()
+    if not _AIX:
+        def num_ctx_switches(self):
+            """Return the number of voluntary and involuntary context
+            switches performed by this process.
+            """
+            return self._proc.num_ctx_switches()
 
     def num_threads(self):
         """Return the number of threads used by this process."""
@@ -963,7 +967,7 @@ class Process(object):
         except ZeroDivisionError:
             return 0.0
 
-    if not _OPENBSD:
+    if not _OPENBSD and not _AIX:
         def memory_maps(self, grouped=True):
             """Return process' mapped memory regions as a list of namedtuples
             whose fields are variable depending on the platform.
