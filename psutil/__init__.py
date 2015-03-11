@@ -126,6 +126,8 @@ elif sys.platform.startswith("sunos"):
     from . import _pssunos as _psplatform
     from ._pssunos import (CONN_IDLE,  # NOQA
                            CONN_BOUND)
+elif sys.platform.startswith("aix"):
+    from . import _psaix as _psplatform
 
 else:  # pragma: no cover
     raise NotImplementedError('platform %s is not supported' % sys.platform)

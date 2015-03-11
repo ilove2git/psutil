@@ -44,8 +44,6 @@ LOWER PRIORITY
 
  * DragonFlyBSD support?
 
- * AIX support?
-
  * examples/taskmgr-gui.py (using tk).
 
  * system-wide number of open file descriptors:

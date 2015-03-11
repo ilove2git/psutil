@@ -137,6 +137,16 @@ elif sys.platform.lower().startswith('sunos'):
         libraries=['kstat', 'nsl', 'socket']),
         posix_extension,
     ]
+# AIX
+elif sys.platform.lower().startswith('aix'):
+    posix_extension.sources.append('psutil/arch/aix/getifaddrs.c')
+    extensions = [Extension(
+        'psutil._psutil_aix',
+        sources=['psutil/_psutil_aix.c'],
+        libraries=['perfstat'],
+        define_macros=[VERSION_MACRO]),
+        posix_extension,
+    ]
 else:
     sys.exit('platform %s is not supported' % sys.platform)
 

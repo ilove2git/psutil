@@ -12,9 +12,14 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-
-#ifndef NO_IFADDRS
-#include <ifaddrs.h>
+#ifndef _AIX
+#   ifndef NO_IFADDRS
+//      not on Solaris 10 and not on AIX
+#       include <ifaddrs.h>
+#   endif
+#else
+//  only on AIX
+#   include "arch/aix/ifaddrs.h"
 #endif
 
 #ifdef __linux
@@ -28,7 +33,7 @@
 #include <net/if_dl.h>
 #endif
 
-#if defined(__sun)
+#if defined(__sun) || defined(_AIX)
 #include <netdb.h>
 #endif
 
@@ -525,7 +530,7 @@ void init_psutil_posix(void)
     PyObject *module = Py_InitModule("_psutil_posix", PsutilMethods);
 #endif
 
-#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__sun)
+#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__sun) || defined(_AIX)
     PyModule_AddIntConstant(module, "AF_LINK", AF_LINK);
 #endif
 

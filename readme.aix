@@ -1,0 +1,14 @@
+AIX support is experimental and incomplete at this time.
+The following functions and methods are UNSUPPORTED on the AIX platform:
+
+    psutil.net_io_counters
+    psutil.net_connections
+    psutil.net_if_stats
+    psutil.disk_io_counters
+    psutil.disk_partitions
+    psutil.Process.as_dict
+    psutil.Process.connections
+    psutil.Process.memory_maps
+    psutil.Process.num_ctx_switches
+    psutil.Process.threads
+    psutil.Process.terminal
