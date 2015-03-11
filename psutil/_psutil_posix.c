@@ -18,7 +18,11 @@
 #ifdef PSUTIL_SUNOS10
 #include "arch/solaris/v10/ifaddrs.h"
 #else
+#ifdef _AIX
+#include "arch/aix/ifaddrs.h"
+#else
 #include <ifaddrs.h>
+#endif
 #endif
 
 #ifdef __linux
@@ -32,7 +36,7 @@
 #include <net/if_dl.h>
 #endif
 
-#if defined(__sun)
+#if defined(__sun) || defined(_AIX)
 #include <netdb.h>
 #endif
 
@@ -537,7 +541,7 @@ void init_psutil_posix(void)
     PyObject *module = Py_InitModule("_psutil_posix", PsutilMethods);
 #endif
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__sun) || defined(__NetBSD__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__sun) || defined(__NetBSD__) || defined(_AIX)
     PyModule_AddIntConstant(module, "AF_LINK", AF_LINK);
 #endif
 

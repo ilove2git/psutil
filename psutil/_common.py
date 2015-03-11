@@ -41,6 +41,7 @@ OPENBSD = sys.platform.startswith("openbsd")
 NETBSD = sys.platform.startswith("netbsd")
 BSD = FREEBSD or OPENBSD or NETBSD
 SUNOS = sys.platform.startswith("sunos") or sys.platform.startswith("solaris")
+AIX = sys.platform.startswith("aix")
 
 AF_INET6 = getattr(socket, 'AF_INET6', None)
 AF_UNIX = getattr(socket, 'AF_UNIX', None)

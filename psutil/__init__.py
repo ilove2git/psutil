@@ -69,6 +69,7 @@ from ._common import OSX
 from ._common import POSIX  # NOQA
 from ._common import SUNOS
 from ._common import WINDOWS
+from ._common import AIX
 
 if LINUX:
     # This is public API and it will be retrieved from _pslinux.py
@@ -144,6 +145,9 @@ elif SUNOS:
     # This is public API and it will be retrieved from _pssunos.py
     # via sys.modules.
     PROCFS_PATH = "/proc"
+
+elif AIX:
+    from . import _psaix as _psplatform
 
 else:  # pragma: no cover
     raise NotImplementedError('platform %s is not supported' % sys.platform)
@@ -690,7 +694,7 @@ class Process(object):
             """
             return self._proc.num_fds()
 
-    # Linux, BSD and Windows only
+    # Linux, BSD, AIX and Windows only
     if hasattr(_psplatform.Process, "io_counters"):
 
         def io_counters(self):
@@ -775,11 +779,12 @@ class Process(object):
             """
             return self._proc.num_handles()
 
-    def num_ctx_switches(self):
-        """Return the number of voluntary and involuntary context
-        switches performed by this process.
-        """
-        return self._proc.num_ctx_switches()
+    if not AIX:
+        def num_ctx_switches(self):
+            """Return the number of voluntary and involuntary context
+            switches performed by this process.
+            """
+            return self._proc.num_ctx_switches()
 
     def num_threads(self):
         """Return the number of threads used by this process."""
@@ -1047,6 +1052,7 @@ class Process(object):
     if hasattr(_psplatform.Process, "memory_maps"):
         # Available everywhere except OpenBSD and NetBSD.
 
+    if not OPENBSD and not AIX:
         def memory_maps(self, grouped=True):
             """Return process' mapped memory regions as a list of namedtuples
             whose fields are variable depending on the platform.

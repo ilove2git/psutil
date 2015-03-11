@@ -428,7 +428,7 @@ Network
    | "all"          | the sum of all the possible families and protocols  |
    +----------------+-----------------------------------------------------+
 
-  On OSX this function requires root privileges.
+  On OSX and AIX this function requires root privileges.
   To get per-process connections use :meth:`Process.connections`.
   Also, see
   `netstat.py sample script <https://github.com/giampaolo/psutil/blob/master/scripts/netstat.py>`__.
@@ -443,6 +443,8 @@ Network
      ...]
 
   .. note:: (OSX) :class:`psutil.AccessDenied` is always raised unless running
+     as root (lsof does the same).
+  .. note:: (AIX) :class:`psutil.AccessDenied` is always raised unless running
      as root (lsof does the same).
   .. note:: (Solaris) UNIX sockets are not supported.
 
@@ -909,20 +911,21 @@ Process class
      and written. For Linux refer to
      `/proc filesysem documentation <https://www.kernel.org/doc/Documentation/filesystems/proc.txt>`__.
      On BSD there's apparently no way to retrieve bytes counters, hence ``-1``
-     is returned for **read_bytes** and **write_bytes** fields. OSX is not
-     supported.
+     is returned for **read_bytes** and **write_bytes** fields.
 
       >>> import psutil
       >>> p = psutil.Process()
       >>> p.io_counters()
       pio(read_count=454556, write_count=3456, read_bytes=110592, write_bytes=0)
 
-     Availability: all platforms except OSX and Solaris
+     Availability: Linux, BSD, Windows, AIX
 
   .. method:: num_ctx_switches()
 
      The number voluntary and involuntary context switches performed by
      this process.
+
+     Availability: all platforms except AIX
 
   .. method:: num_fds()
 
@@ -1042,33 +1045,33 @@ Process class
      The "portable" fields available on all plaforms are `rss` and `vms`.
      All numbers are expressed in bytes.
 
-     +---------+---------+-------+---------+------------------------------+
-     | Linux   | OSX     | BSD   | Solaris | Windows                      |
-     +=========+=========+=======+=========+==============================+
-     | rss     | rss     | rss   | rss     | rss (alias for ``wset``)     |
-     +---------+---------+-------+---------+------------------------------+
-     | vms     | vms     | vms   | vms     | vms (alias for ``pagefile``) |
-     +---------+---------+-------+---------+------------------------------+
-     | shared  | pfaults | text  |         | num_page_faults              |
-     +---------+---------+-------+---------+------------------------------+
-     | text    | pageins | data  |         | peak_wset                    |
-     +---------+---------+-------+---------+------------------------------+
-     | lib     |         | stack |         | wset                         |
-     +---------+---------+-------+---------+------------------------------+
-     | data    |         |       |         | peak_paged_pool              |
-     +---------+---------+-------+---------+------------------------------+
-     | dirty   |         |       |         | paged_pool                   |
-     +---------+---------+-------+---------+------------------------------+
-     |         |         |       |         | peak_nonpaged_pool           |
-     +---------+---------+-------+---------+------------------------------+
-     |         |         |       |         | nonpaged_pool                |
-     +---------+---------+-------+---------+------------------------------+
-     |         |         |       |         | pagefile                     |
-     +---------+---------+-------+---------+------------------------------+
-     |         |         |       |         | peak_pagefile                |
-     +---------+---------+-------+---------+------------------------------+
-     |         |         |       |         | private                      |
-     +---------+---------+-------+---------+------------------------------+
+     +---------+---------+-------+---------+-----+------------------------------+
+     | Linux   | OSX     | BSD   | Solaris | AIX | Windows                      |
+     +=========+=========+=======+=========+=====+==============================+
+     | rss     | rss     | rss   | rss     | rss | rss (alias for ``wset``)     |
+     +---------+---------+-------+---------+-----+------------------------------+
+     | vms     | vms     | vms   | vms     | vms | vms (alias for ``pagefile``) |
+     +---------+---------+-------+---------+-----+------------------------------+
+     | shared  | pfaults | text  |         |     | num_page_faults              |
+     +---------+---------+-------+---------+-----+------------------------------+
+     | text    | pageins | data  |         |     | peak_wset                    |
+     +---------+---------+-------+---------+-----+------------------------------+
+     | lib     |         | stack |         |     | wset                         |
+     +---------+---------+-------+---------+-----+------------------------------+
+     | data    |         |       |         |     | peak_paged_pool              |
+     +---------+---------+-------+---------+-----+------------------------------+
+     | dirty   |         |       |         |     | paged_pool                   |
+     +---------+---------+-------+---------+-----+------------------------------+
+     |         |         |       |         |     | peak_nonpaged_pool           |
+     +---------+---------+-------+---------+-----+------------------------------+
+     |         |         |       |         |     | nonpaged_pool                |
+     +---------+---------+-------+---------+-----+------------------------------+
+     |         |         |       |         |     | pagefile                     |
+     +---------+---------+-------+---------+-----+------------------------------+
+     |         |         |       |         |     | peak_pagefile                |
+     +---------+---------+-------+---------+-----+------------------------------+
+     |         |         |       |         |     | private                      |
+     +---------+---------+-------+---------+-----+------------------------------+
 
      - **rss**: aka "Resident Set Size", this is the non-swapped physical
        memory a process has used.
@@ -1228,7 +1231,7 @@ Process class
        ...]
       >>>
 
-    Availability: All platforms except OpenBSD and NetBSD.
+    Availability: All platforms except OpenBSD, NetBSD and AIX.
 
   .. method:: children(recursive=False)
 
@@ -1373,6 +1376,9 @@ Process class
        pconn(fd=117, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=('10.0.0.1', 43761), raddr=('72.14.234.100', 80), status='CLOSING'),
        pconn(fd=119, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=('10.0.0.1', 60759), raddr=('72.14.234.104', 80), status='ESTABLISHED'),
        pconn(fd=123, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=('10.0.0.1', 51314), raddr=('72.14.234.83', 443), status='SYN_SENT')]
+
+  .. note:: (AIX) :class:`psutil.AccessDenied` is always raised unless running
+     as root (lsof does the same).
 
   .. method:: is_running()
 
