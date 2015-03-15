@@ -1803,7 +1803,7 @@ class TestProcess(unittest.TestCase):
         p.cpu_affinity(tuple(all_cpus))
         invalid_cpu = [len(psutil.cpu_times(percpu=True)) + 10]
         self.assertRaises(ValueError, p.cpu_affinity, invalid_cpu)
-        self.assertRaises(ValueError, p.cpu_affinity, range(10000, 11000))
+        self.assertRaises(ValueError, p.cpu_affinity, range(10000, 10005))
         self.assertRaises(TypeError, p.cpu_affinity, [0, "1"])
 
     # TODO
