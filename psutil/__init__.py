@@ -166,6 +166,7 @@ AF_LINK = _psplatform.AF_LINK
 _TOTAL_PHYMEM = None
 _POSIX = os.name == 'posix'
 _WINDOWS = os.name == 'nt'
+_AIX = sys.platform.startswith("aix")
 _timer = getattr(time, 'monotonic', time.time)
 
 
@@ -646,11 +647,12 @@ class Process(object):
             """
             return self._proc.gids()
 
-        def terminal(self):
-            """The terminal associated with this process, if any,
-            else None.
-            """
-            return self._proc.terminal()
+        if not _AIX:
+            def terminal(self):
+                """The terminal associated with this process, if any,
+                else None.
+                """
+                return self._proc.terminal()
 
         def num_fds(self):
             """Return the number of file descriptors opened by this
@@ -735,22 +737,24 @@ class Process(object):
             """
             return self._proc.num_handles()
 
-    def num_ctx_switches(self):
-        """Return the number of voluntary and involuntary context
-        switches performed by this process.
-        """
-        return self._proc.num_ctx_switches()
+
+    if not _AIX:
+        def num_ctx_switches(self):
+            """Return the number of voluntary and involuntary context
+            switches performed by this process.
+            """
+            return self._proc.num_ctx_switches()
+
+        def threads(self):
+            """Return threads opened by process as a list of
+            (id, user_time, system_time) namedtuples representing
+            thread id and thread CPU times (user/system).
+            """
+            return self._proc.threads()
 
     def num_threads(self):
         """Return the number of threads used by this process."""
         return self._proc.num_threads()
-
-    def threads(self):
-        """Return threads opened by process as a list of
-        (id, user_time, system_time) namedtuples representing
-        thread id and thread CPU times (user/system).
-        """
-        return self._proc.threads()
 
     @_assert_pid_not_reused
     def children(self, recursive=False):
@@ -956,32 +960,33 @@ class Process(object):
         except ZeroDivisionError:
             return 0.0
 
-    def memory_maps(self, grouped=True):
-        """Return process' mapped memory regions as a list of namedtuples
-        whose fields are variable depending on the platform.
+    if not _AIX:
+        def memory_maps(self, grouped=True):
+            """Return process' mapped memory regions as a list of namedtuples
+            whose fields are variable depending on the platform.
 
-        If 'grouped' is True the mapped regions with the same 'path'
-        are grouped together and the different memory fields are summed.
+            If 'grouped' is True the mapped regions with the same 'path'
+            are grouped together and the different memory fields are summed.
 
-        If 'grouped' is False every mapped region is shown as a single
-        entity and the namedtuple will also include the mapped region's
-        address space ('addr') and permission set ('perms').
-        """
-        it = self._proc.memory_maps()
-        if grouped:
-            d = {}
-            for tupl in it:
-                path = tupl[2]
-                nums = tupl[3:]
-                try:
-                    d[path] = map(lambda x, y: x + y, d[path], nums)
-                except KeyError:
-                    d[path] = nums
-            nt = _psplatform.pmmap_grouped
-            return [nt(path, *d[path]) for path in d]  # NOQA
-        else:
-            nt = _psplatform.pmmap_ext
-            return [nt(*x) for x in it]
+            If 'grouped' is False every mapped region is shown as a single
+            entity and the namedtuple will also include the mapped region's
+            address space ('addr') and permission set ('perms').
+            """
+            it = self._proc.memory_maps()
+            if grouped:
+                d = {}
+                for tupl in it:
+                    path = tupl[2]
+                    nums = tupl[3:]
+                    try:
+                        d[path] = map(lambda x, y: x + y, d[path], nums)
+                    except KeyError:
+                        d[path] = nums
+                nt = _psplatform.pmmap_grouped
+                return [nt(path, *d[path]) for path in d]  # NOQA
+            else:
+                nt = _psplatform.pmmap_ext
+                return [nt(*x) for x in it]
 
     def open_files(self):
         """Return files opened by process as a list of
@@ -990,26 +995,27 @@ class Process(object):
         """
         return self._proc.open_files()
 
-    def connections(self, kind='inet'):
-        """Return connections opened by process as a list of
-        (fd, family, type, laddr, raddr, status) namedtuples.
-        The 'kind' parameter filters for connections that match the
-        following criteria:
+    if not _AIX:
+        def connections(self, kind='inet'):
+            """Return connections opened by process as a list of
+            (fd, family, type, laddr, raddr, status) namedtuples.
+            The 'kind' parameter filters for connections that match the
+            following criteria:
 
-        Kind Value      Connections using
-        inet            IPv4 and IPv6
-        inet4           IPv4
-        inet6           IPv6
-        tcp             TCP
-        tcp4            TCP over IPv4
-        tcp6            TCP over IPv6
-        udp             UDP
-        udp4            UDP over IPv4
-        udp6            UDP over IPv6
-        unix            UNIX socket (both UDP and TCP protocols)
-        all             the sum of all the possible families and protocols
-        """
-        return self._proc.connections(kind)
+            Kind Value      Connections using
+            inet            IPv4 and IPv6
+            inet4           IPv4
+            inet6           IPv6
+            tcp             TCP
+            tcp4            TCP over IPv4
+            tcp6            TCP over IPv6
+            udp             UDP
+            udp4            UDP over IPv4
+            udp6            UDP over IPv6
+            unix            UNIX socket (both UDP and TCP protocols)
+            all             the sum of all the possible families and protocols
+            """
+            return self._proc.connections(kind)
 
     if _POSIX:
         def _send_signal(self, sig):
@@ -1644,46 +1650,47 @@ def disk_usage(path):
     return _psplatform.disk_usage(path)
 
 
-def disk_partitions(all=False):
-    """Return mounted partitions as a list of
-    (device, mountpoint, fstype, opts) namedtuple.
-    'opts' field is a raw string separated by commas indicating mount
-    options which may vary depending on the platform.
+if not _AIX:
+    def disk_partitions(all=False):
+        """Return mounted partitions as a list of
+        (device, mountpoint, fstype, opts) namedtuple.
+        'opts' field is a raw string separated by commas indicating mount
+        options which may vary depending on the platform.
 
-    If "all" parameter is False return physical devices only and ignore
-    all others.
-    """
-    return _psplatform.disk_partitions(all)
+        If "all" parameter is False return physical devices only and ignore
+        all others.
+        """
+        return _psplatform.disk_partitions(all)
 
 
-def disk_io_counters(perdisk=False):
-    """Return system disk I/O statistics as a namedtuple including
-    the following fields:
+    def disk_io_counters(perdisk=False):
+        """Return system disk I/O statistics as a namedtuple including
+        the following fields:
 
-     - read_count:  number of reads
-     - write_count: number of writes
-     - read_bytes:  number of bytes read
-     - write_bytes: number of bytes written
-     - read_time:   time spent reading from disk (in milliseconds)
-     - write_time:  time spent writing to disk (in milliseconds)
+         - read_count:  number of reads
+         - write_count: number of writes
+         - read_bytes:  number of bytes read
+         - write_bytes: number of bytes written
+         - read_time:   time spent reading from disk (in milliseconds)
+         - write_time:  time spent writing to disk (in milliseconds)
 
-    If perdisk is True return the same information for every
-    physical disk installed on the system as a dictionary
-    with partition names as the keys and the namedtuple
-    described above as the values.
+        If perdisk is True return the same information for every
+        physical disk installed on the system as a dictionary
+        with partition names as the keys and the namedtuple
+        described above as the values.
 
-    On recent Windows versions 'diskperf -y' command may need to be
-    executed first otherwise this function won't find any disk.
-    """
-    rawdict = _psplatform.disk_io_counters()
-    if not rawdict:
-        raise RuntimeError("couldn't find any physical disk")
-    if perdisk:
-        for disk, fields in rawdict.items():
-            rawdict[disk] = _common.sdiskio(*fields)
-        return rawdict
-    else:
-        return _common.sdiskio(*[sum(x) for x in zip(*rawdict.values())])
+        On recent Windows versions 'diskperf -y' command may need to be
+        executed first otherwise this function won't find any disk.
+        """
+        rawdict = _psplatform.disk_io_counters()
+        if not rawdict:
+            raise RuntimeError("couldn't find any physical disk")
+        if perdisk:
+            for disk, fields in rawdict.items():
+                rawdict[disk] = _common.sdiskio(*fields)
+            return rawdict
+        else:
+            return _common.sdiskio(*[sum(x) for x in zip(*rawdict.values())])
 
 
 # =====================================================================
@@ -1691,60 +1698,76 @@ def disk_io_counters(perdisk=False):
 # =====================================================================
 
 
-def net_io_counters(pernic=False):
-    """Return network I/O statistics as a namedtuple including
-    the following fields:
+if not _AIX:
+    def net_io_counters(pernic=False):
+        """Return network I/O statistics as a namedtuple including
+        the following fields:
 
-     - bytes_sent:   number of bytes sent
-     - bytes_recv:   number of bytes received
-     - packets_sent: number of packets sent
-     - packets_recv: number of packets received
-     - errin:        total number of errors while receiving
-     - errout:       total number of errors while sending
-     - dropin:       total number of incoming packets which were dropped
-     - dropout:      total number of outgoing packets which were dropped
-                     (always 0 on OSX and BSD)
+         - bytes_sent:   number of bytes sent
+         - bytes_recv:   number of bytes received
+         - packets_sent: number of packets sent
+         - packets_recv: number of packets received
+         - errin:        total number of errors while receiving
+         - errout:       total number of errors while sending
+         - dropin:       total number of incoming packets which were dropped
+         - dropout:      total number of outgoing packets which were dropped
+                         (always 0 on OSX and BSD)
 
-    If pernic is True return the same information for every
-    network interface installed on the system as a dictionary
-    with network interface names as the keys and the namedtuple
-    described above as the values.
-    """
-    rawdict = _psplatform.net_io_counters()
-    if not rawdict:
-        raise RuntimeError("couldn't find any network interface")
-    if pernic:
-        for nic, fields in rawdict.items():
-            rawdict[nic] = _common.snetio(*fields)
-        return rawdict
-    else:
-        return _common.snetio(*[sum(x) for x in zip(*rawdict.values())])
+        If pernic is True return the same information for every
+        network interface installed on the system as a dictionary
+        with network interface names as the keys and the namedtuple
+        described above as the values.
+        """
+        rawdict = _psplatform.net_io_counters()
+        if not rawdict:
+            raise RuntimeError("couldn't find any network interface")
+        if pernic:
+            for nic, fields in rawdict.items():
+                rawdict[nic] = _common.snetio(*fields)
+            return rawdict
+        else:
+            return _common.snetio(*[sum(x) for x in zip(*rawdict.values())])
+
+    def net_connections(kind='inet'):
+        """Return system-wide connections as a list of
+        (fd, family, type, laddr, raddr, status, pid) namedtuples.
+        In case of limited privileges 'fd' and 'pid' may be set to -1
+        and None respectively.
+        The 'kind' parameter filters for connections that fit the
+        following criteria:
+
+        Kind Value      Connections using
+        inet            IPv4 and IPv6
+        inet4           IPv4
+        inet6           IPv6
+        tcp             TCP
+        tcp4            TCP over IPv4
+        tcp6            TCP over IPv6
+        udp             UDP
+        udp4            UDP over IPv4
+        udp6            UDP over IPv6
+        unix            UNIX socket (both UDP and TCP protocols)
+        all             the sum of all the possible families and protocols
+
+        On OSX this function requires root privileges.
+        """
+        return _psplatform.net_connections(kind)
 
 
-def net_connections(kind='inet'):
-    """Return system-wide connections as a list of
-    (fd, family, type, laddr, raddr, status, pid) namedtuples.
-    In case of limited privileges 'fd' and 'pid' may be set to -1
-    and None respectively.
-    The 'kind' parameter filters for connections that fit the
-    following criteria:
+if hasattr(_psplatform, "net_if_stats"):
+    def net_if_stats():
+        """Return information about each NIC (network interface card)
+        installed on the system as a dictionary whose keys are the
+        NIC names and value is a namedtuple with the following fields:
 
-    Kind Value      Connections using
-    inet            IPv4 and IPv6
-    inet4           IPv4
-    inet6           IPv6
-    tcp             TCP
-    tcp4            TCP over IPv4
-    tcp6            TCP over IPv6
-    udp             UDP
-    udp4            UDP over IPv4
-    udp6            UDP over IPv6
-    unix            UNIX socket (both UDP and TCP protocols)
-    all             the sum of all the possible families and protocols
-
-    On OSX this function requires root privileges.
-    """
-    return _psplatform.net_connections(kind)
+         - isup: whether the interface is up (bool)
+         - duplex: can be either NIC_DUPLEX_FULL, NIC_DUPLEX_HALF or
+                   NIC_DUPLEX_UNKNOWN
+         - speed: the NIC speed expressed in mega bits (MB); if it can't
+                  be determined (e.g. 'localhost') it will be set to 0.
+         - mtu: the maximum transmission unit expressed in bytes.
+        """
+        return _psplatform.net_if_stats()
 
 
 if hasattr(_psplatform, "net_if_addrs"):
@@ -1787,22 +1810,6 @@ if hasattr(_psplatform, "net_if_addrs"):
                         fam = _psplatform.AF_LINK
             ret[name].append(_common.snic(fam, addr, mask, broadcast))
         return dict(ret)
-
-
-if hasattr(_psplatform, "net_if_stats"):
-    def net_if_stats():
-        """Return information about each NIC (network interface card)
-        installed on the system as a dictionary whose keys are the
-        NIC names and value is a namedtuple with the following fields:
-
-         - isup: whether the interface is up (bool)
-         - duplex: can be either NIC_DUPLEX_FULL, NIC_DUPLEX_HALF or
-                   NIC_DUPLEX_UNKNOWN
-         - speed: the NIC speed expressed in mega bits (MB); if it can't
-                  be determined (e.g. 'localhost') it will be set to 0.
-         - mtu: the maximum transmission unit expressed in bytes.
-        """
-        return _psplatform.net_if_stats()
 
 
 # =====================================================================

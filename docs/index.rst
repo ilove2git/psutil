@@ -242,6 +242,8 @@ Disks
     [sdiskpart(device='/dev/sda3', mountpoint='/', fstype='ext4', opts='rw,errors=remount-ro'),
      sdiskpart(device='/dev/sda7', mountpoint='/home', fstype='ext4', opts='rw')]
 
+  Availability: all platforms except AIX
+
 .. function:: disk_usage(path)
 
   Return disk usage statistics about the given *path* as a namedtuple including
@@ -289,6 +291,8 @@ Disks
      'sda2': sdiskio(read_count=18707, write_count=8830, read_bytes=6060, write_bytes=3443, read_time=24585, write_time=1572),
      'sdb1': sdiskio(read_count=161, write_count=0, read_bytes=786432, write_bytes=0, read_time=44, write_time=0)}
 
+  Availability: all platforms except AIX
+
 Network
 -------
 
@@ -320,6 +324,8 @@ Network
     >>> psutil.net_io_counters(pernic=True)
     {'lo': snetio(bytes_sent=547971, bytes_recv=547971, packets_sent=5075, packets_recv=5075, errin=0, errout=0, dropin=0, dropout=0),
     'wlan0': snetio(bytes_sent=13921765, bytes_recv=62162574, packets_sent=79097, packets_recv=89648, errin=0, errout=0, dropin=0, dropout=0)}
+
+  Availability: all platforms except AIX
 
 .. function:: net_connections(kind='inet')
 
@@ -405,6 +411,8 @@ Network
 
   .. versionadded:: 2.1.0
 
+  Availability: all platforms except AIX
+
 .. function:: net_if_addrs()
 
   Return the addresses associated to each NIC (network interface card)
@@ -472,6 +480,8 @@ Network
     >>> psutil.net_if_stats()
     {'eth0': snicstats(isup=True, duplex=<NicDuplex.NIC_DUPLEX_FULL: 2>, speed=100, mtu=1500),
      'lo': snicstats(isup=True, duplex=<NicDuplex.NIC_DUPLEX_UNKNOWN: 0>, speed=0, mtu=65536)}
+
+  Availability: all platforms except AIX
 
   *New in 3.0.0*
 
@@ -755,7 +765,7 @@ Process class
      The terminal associated with this process, if any, else ``None``. This is
      similar to "tty" command but can be used for every process PID.
 
-     Availability: UNIX
+     Availability: all UNIX platforms except AIX
 
   .. method:: nice(value=None)
 
@@ -862,6 +872,8 @@ Process class
      The number voluntary and involuntary context switches performed by
      this process.
 
+     Availability: all platforms except AIX
+
   .. method:: num_fds()
 
      The number of file descriptors used by this process.
@@ -882,6 +894,8 @@ Process class
 
      Return threads opened by process as a list of namedtuples including thread
      id and thread CPU times (user/system).
+
+     Availability: all platforms except AIX
 
   .. method:: cpu_times()
 
@@ -1031,6 +1045,8 @@ Process class
        ...]
       >>>
 
+    Availability: all platforms except AIX
+
   .. method:: children(recursive=False)
 
      Return the children of this process as a list of :Class:`Process` objects,
@@ -1155,6 +1171,8 @@ Process class
        pconn(fd=117, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=('10.0.0.1', 43761), raddr=('72.14.234.100', 80), status='CLOSING'),
        pconn(fd=119, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=('10.0.0.1', 60759), raddr=('72.14.234.104', 80), status='ESTABLISHED'),
        pconn(fd=123, family=<AddressFamily.AF_INET: 2>, type=<SocketType.SOCK_STREAM: 1>, laddr=('10.0.0.1', 51314), raddr=('72.14.234.83', 443), status='SYN_SENT')]
+
+    Availability: all platforms except AIX
 
   .. method:: is_running()
 
