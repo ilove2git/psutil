@@ -1039,7 +1039,8 @@ class TestSystemAPIs(unittest.TestCase):
 
     def test_net_if_addrs(self):
         if not hasattr(psutil, "net_if_addrs"):
-            raise unittest.SkipTest("net_if_addrs is not supported on this platform")
+            raise unittest.SkipTest(
+                "net_if_addrs is not supported on this platform")
         nics = psutil.net_if_addrs()
         assert nics, nics
 
@@ -1580,7 +1581,8 @@ class TestProcess(unittest.TestCase):
             if not nt.path.startswith('['):
                 assert os.path.isabs(nt.path), nt.path
                 if POSIX:
-                    assert os.path.exists(nt.path) or os.path.islink(nt.path), nt.path
+                    assert os.path.exists(nt.path) or \
+                        os.path.islink(nt.path), nt.path
                 else:
                     # XXX - On Windows we have this strange behavior with
                     # 64 bit dlls: they are visible via explorer but cannot
@@ -2978,7 +2980,8 @@ class TestExampleScripts(unittest.TestCase):
         self.assert_stdout('netstat.py')
 
     @unittest.skipIf(TRAVIS, "permission denied on travis")
-    @unittest.skipIf(not hasattr(psutil, "net_if_addrs"), "net_if_addrs is not supported on this platform")
+    @unittest.skipIf(not hasattr(psutil, "net_if_addrs"),
+                     "net_if_addrs is not supported on this platform")
     def test_ifconfig(self):
         self.assert_stdout('ifconfig.py')
 
