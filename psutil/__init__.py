@@ -19,6 +19,7 @@ import os
 import signal
 import subprocess
 import sys
+import platform
 import time
 try:
     import pwd
@@ -1745,45 +1746,47 @@ def net_connections(kind='inet'):
     return _psplatform.net_connections(kind)
 
 
-def net_if_addrs():
-    """Return the addresses associated to each NIC (network interface
-    card) installed on the system as a dictionary whose keys are the
-    NIC names and value is a list of namedtuples for each address
-    assigned to the NIC. Each namedtuple includes 4 fields:
+NO_IFADDRS = sys.platform.startswith("sunos") and platform.release() == "5.10"
+if not NO_IFADDRS:
+    def net_if_addrs():
+        """Return the addresses associated to each NIC (network interface
+        card) installed on the system as a dictionary whose keys are the
+        NIC names and value is a list of namedtuples for each address
+        assigned to the NIC. Each namedtuple includes 4 fields:
 
-     - family
-     - address
-     - netmask
-     - broadcast
+         - family
+         - address
+         - netmask
+         - broadcast
 
-    'family' can be either socket.AF_INET, socket.AF_INET6 or
-    psutil.AF_LINK, which refers to a MAC address.
-    'address' is the primary address, 'netmask' and 'broadcast'
-    may be None.
-    Note: you can have more than one address of the same family
-    associated with each interface.
-    """
-    has_enums = sys.version_info >= (3, 4)
-    if has_enums:
-        import socket
-    rawlist = _psplatform.net_if_addrs()
-    rawlist.sort(key=lambda x: x[1])  # sort by family
-    ret = collections.defaultdict(list)
-    for name, fam, addr, mask, broadcast in rawlist:
+        'family' can be either socket.AF_INET, socket.AF_INET6 or
+        psutil.AF_LINK, which refers to a MAC address.
+        'address' is the primary address, 'netmask' and 'broadcast'
+        may be None.
+        Note: you can have more than one address of the same family
+        associated with each interface.
+        """
+        has_enums = sys.version_info >= (3, 4)
         if has_enums:
-            try:
-                fam = socket.AddressFamily(fam)
-            except ValueError:
-                if os.name == 'nt' and fam == -1:
-                    fam = _psplatform.AF_LINK
-                elif (hasattr(_psplatform, "AF_LINK") and
-                        _psplatform.AF_LINK == fam):
-                    # Linux defines AF_LINK as an alias for AF_PACKET.
-                    # We re-set the family here so that repr(family)
-                    # will show AF_LINK rather than AF_PACKET
-                    fam = _psplatform.AF_LINK
-        ret[name].append(_common.snic(fam, addr, mask, broadcast))
-    return dict(ret)
+            import socket
+        rawlist = _psplatform.net_if_addrs()
+        rawlist.sort(key=lambda x: x[1])  # sort by family
+        ret = collections.defaultdict(list)
+        for name, fam, addr, mask, broadcast in rawlist:
+            if has_enums:
+                try:
+                    fam = socket.AddressFamily(fam)
+                except ValueError:
+                    if os.name == 'nt' and fam == -1:
+                        fam = _psplatform.AF_LINK
+                    elif (hasattr(_psplatform, "AF_LINK") and
+                            _psplatform.AF_LINK == fam):
+                        # Linux defines AF_LINK as an alias for AF_PACKET.
+                        # We re-set the family here so that repr(family)
+                        # will show AF_LINK rather than AF_PACKET
+                        fam = _psplatform.AF_LINK
+            ret[name].append(_common.snic(fam, addr, mask, broadcast))
+        return dict(ret)
 
 
 def net_if_stats():

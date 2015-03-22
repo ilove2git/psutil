@@ -12,7 +12,10 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
+#ifndef NO_IFADDRS
 #include <ifaddrs.h>
+#endif
 
 #ifdef __linux
 #include <netdb.h>
@@ -70,6 +73,7 @@ psutil_posix_setpriority(PyObject *self, PyObject *args)
 }
 
 
+#ifndef NO_IFADDRS
 /*
  * Translate a sockaddr struct into a Python string.
  * Return None if address family is not AF_INET* or AF_PACKET.
@@ -224,7 +228,7 @@ error:
     Py_XDECREF(py_broadcast);
     return NULL;
 }
-
+#endif
 
 /*
  * net_if_stats() implementation. This is here because it is common
@@ -458,8 +462,10 @@ PsutilMethods[] =
      "Return process priority"},
     {"setpriority", psutil_posix_setpriority, METH_VARARGS,
      "Set process priority"},
+#ifndef NO_IFADDRS
     {"net_if_addrs", psutil_net_if_addrs, METH_VARARGS,
      "Retrieve NICs information"},
+#endif
 #if defined(__FreeBSD__) || defined(__APPLE__)
     {"net_if_stats", psutil_net_if_stats, METH_VARARGS,
      "Return NIC stats."},

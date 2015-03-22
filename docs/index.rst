@@ -444,6 +444,8 @@ Network
   .. note:: you can have more than one address of the same family associated
     with each interface (that's why dict values are lists).
 
+  Availability: all platforms except Solaris 10
+
   *New in 3.0.0*
 
 .. function:: net_if_stats()

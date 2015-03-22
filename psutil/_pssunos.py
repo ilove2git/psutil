@@ -75,7 +75,8 @@ TimeoutExpired = None
 disk_io_counters = cext.disk_io_counters
 net_io_counters = cext.net_io_counters
 disk_usage = _psposix.disk_usage
-net_if_addrs = cext_posix.net_if_addrs
+if hasattr(cext_posix, "net_if_addrs"):
+    net_if_addrs = cext_posix.net_if_addrs
 
 
 def virtual_memory():

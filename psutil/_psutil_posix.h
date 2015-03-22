@@ -6,7 +6,9 @@
 
 #include <Python.h>
 
+#ifndef NO_IFADDRS
 static PyObject* psutil_net_if_addrs(PyObject* self, PyObject* args);
+#endif
 static PyObject* psutil_posix_getpriority(PyObject* self, PyObject* args);
 static PyObject* psutil_posix_setpriority(PyObject* self, PyObject* args);
 
