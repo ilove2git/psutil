@@ -24,7 +24,9 @@
 #include <linux/sockios.h>
 #include <linux/if.h>
 #include <linux/types.h>
+#ifndef SUSE10
 #include <linux/ethtool.h>
+#endif
 
 #include "_psutil_linux.h"
 
@@ -472,6 +474,7 @@ error:
 }
 
 
+#ifndef SUSE10
 /*
  * Return stats about a particular network
  * interface.  References:
@@ -551,6 +554,7 @@ error:
     PyErr_SetFromErrno(PyExc_OSError);
     return NULL;
 }
+#endif
 
 
 /*
@@ -579,8 +583,10 @@ PsutilMethods[] =
      "device, mount point and filesystem type"},
     {"users", psutil_users, METH_VARARGS,
      "Return currently connected users as a list of tuples"},
+#ifndef SUSE10
     {"net_if_stats", psutil_net_if_stats, METH_VARARGS,
      "Return NIC stats (isup, duplex, speed, mtu)"},
+#endif
 
     // --- linux specific
 
@@ -679,8 +685,10 @@ void init_psutil_linux(void)
     PyModule_AddIntConstant(module, "RLIMIT_SIGPENDING", RLIMIT_SIGPENDING);
 #endif
 #endif
+#ifndef SUSE10
     PyModule_AddIntConstant(module, "DUPLEX_HALF", DUPLEX_HALF);
     PyModule_AddIntConstant(module, "DUPLEX_FULL", DUPLEX_FULL);
+#endif
     PyModule_AddIntConstant(module, "DUPLEX_UNKNOWN", DUPLEX_UNKNOWN);
 
     if (module == NULL)

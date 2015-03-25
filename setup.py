@@ -126,6 +126,8 @@ elif sys.platform.startswith("linux"):
         define_macros=[VERSION_MACRO]),
         posix_extension,
     ]
+    if platform.dist()[:2] == ("SuSE", "10"):
+        extensions[0].define_macros.append(("SUSE10", 1))
 # Solaris
 elif sys.platform.lower().startswith('sunos'):
     extensions = [Extension(

@@ -1392,6 +1392,8 @@ Constants
   receive data at a time.
   To be used in conjunction with :func:`psutil.net_if_stats()`.
 
+  Availability: all platforms except SUSE 10
+
   *New in 3.0.0*
 
 Development guide

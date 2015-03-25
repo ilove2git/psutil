@@ -596,18 +596,19 @@ def net_io_counters():
     return retdict
 
 
-def net_if_stats():
-    """Get NIC stats (isup, duplex, speed, mtu)."""
-    duplex_map = {cext.DUPLEX_FULL: NIC_DUPLEX_FULL,
-                  cext.DUPLEX_HALF: NIC_DUPLEX_HALF,
-                  cext.DUPLEX_UNKNOWN: NIC_DUPLEX_UNKNOWN}
-    names = net_io_counters().keys()
-    ret = {}
-    for name in names:
-        isup, duplex, speed, mtu = cext.net_if_stats(name)
-        duplex = duplex_map[duplex]
-        ret[name] = _common.snicstats(isup, duplex, speed, mtu)
-    return ret
+if hasattr(cext, "net_if_stats"):
+    def net_if_stats():
+        """Get NIC stats (isup, duplex, speed, mtu)."""
+        duplex_map = {cext.DUPLEX_FULL: NIC_DUPLEX_FULL,
+                      cext.DUPLEX_HALF: NIC_DUPLEX_HALF,
+                      cext.DUPLEX_UNKNOWN: NIC_DUPLEX_UNKNOWN}
+        names = net_io_counters().keys()
+        ret = {}
+        for name in names:
+            isup, duplex, speed, mtu = cext.net_if_stats(name)
+            duplex = duplex_map[duplex]
+            ret[name] = _common.snicstats(isup, duplex, speed, mtu)
+        return ret
 
 
 net_if_addrs = cext_posix.net_if_addrs

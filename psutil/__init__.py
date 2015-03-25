@@ -1787,19 +1787,20 @@ if hasattr(_psplatform, "net_if_addrs"):
         return dict(ret)
 
 
-def net_if_stats():
-    """Return information about each NIC (network interface card)
-    installed on the system as a dictionary whose keys are the
-    NIC names and value is a namedtuple with the following fields:
+if hasattr(_psplatform, "net_if_stats"):
+    def net_if_stats():
+        """Return information about each NIC (network interface card)
+        installed on the system as a dictionary whose keys are the
+        NIC names and value is a namedtuple with the following fields:
 
-     - isup: whether the interface is up (bool)
-     - duplex: can be either NIC_DUPLEX_FULL, NIC_DUPLEX_HALF or
-               NIC_DUPLEX_UNKNOWN
-     - speed: the NIC speed expressed in mega bits (MB); if it can't
-              be determined (e.g. 'localhost') it will be set to 0.
-     - mtu: the maximum transmission unit expressed in bytes.
-    """
-    return _psplatform.net_if_stats()
+         - isup: whether the interface is up (bool)
+         - duplex: can be either NIC_DUPLEX_FULL, NIC_DUPLEX_HALF or
+                   NIC_DUPLEX_UNKNOWN
+         - speed: the NIC speed expressed in mega bits (MB); if it can't
+                  be determined (e.g. 'localhost') it will be set to 0.
+         - mtu: the maximum transmission unit expressed in bytes.
+        """
+        return _psplatform.net_if_stats()
 
 
 # =====================================================================
