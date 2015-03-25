@@ -710,10 +710,14 @@ psutil_net_io_counters(PyObject *self, PyObject *args)
         // (maybe because "ifconfig -a" says it's a virtual interface?).
         if ((strcmp(ksp->ks_module, "link") != 0) &&
             (strcmp(ksp->ks_module, "lo") != 0)) {
-            goto skip;
-        */
-        if ((strcmp(ksp->ks_module, "link") != 0))
             goto next;
+        */
+        if ((strcmp(ksp->ks_module, "link") != 0) && (strcmp(ksp->ks_module, "e1000g") != 0)) {
+            goto next;
+        }
+        if ((strcmp(ksp->ks_name, "statistics") == 0) || (strcmp(ksp->ks_name, "mac") == 0)) {
+            goto next;
+        }
 
         if (kstat_read(kc, ksp, NULL) == -1) {
             errno = 0;
