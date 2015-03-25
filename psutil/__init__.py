@@ -19,7 +19,6 @@ import os
 import signal
 import subprocess
 import sys
-import platform
 import time
 try:
     import pwd
@@ -1746,8 +1745,7 @@ def net_connections(kind='inet'):
     return _psplatform.net_connections(kind)
 
 
-NO_IFADDRS = sys.platform.startswith("sunos") and platform.release() == "5.10"
-if not NO_IFADDRS:
+if hasattr(_psplatform, "net_if_addrs"):
     def net_if_addrs():
         """Return the addresses associated to each NIC (network interface
         card) installed on the system as a dictionary whose keys are the
